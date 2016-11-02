@@ -20,25 +20,26 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   #library(multtest)
   
   #DATASET READ IN
+  
+  #uncomment and change "fileName" to your file if you need to manually run through
   #userInput <- read.table(file = fileName, header = T, sep = ",", stringsAsFactors = F)
   #userInput <- read.table(file = "JoinedZhang_AsNumMatrix_Log2.csv", header = T, sep = ",", stringsAsFactors = F)
+  
+  #used to create separate objects for data
   GeneNamesForJoinedInput <- userInput[,geneColumn]
   GeneNamesForJoinedInput <- as.matrix(GeneNamesForJoinedInput)
   
-  #########
-  #chagning values based on user Input
-  #if (species == "Mouse" || species == "mouse"){
-  #  CellTypeGeneColumn = 5
-  #}
-  #else{
-  #  CellTypeGeneColumn = 4
-  #}
+  ######################
   
   #function begins
   
   ##################################################
   #correlation matrices
   TempJoinedInput_AsNum <- userInput[,dataColumns]
+
+  
+  
+  ########################################Unused
   #temp<-cor(TempJoinedInput_AsNum)
   #row.names(temp)<-colnames(userInput)
   
@@ -61,7 +62,7 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   
   ##################################################
   #Test stuff
-  
+  #Mostly for manual run throughs if function does not work
   temp3<-apply(TempJoinedInput_AsNum, 1, max)
   sum(temp3<2)
   #9787
@@ -73,11 +74,13 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   #.529 or 53%
   
   ##################################################
+  
+  #checking for any standard deviations of 0
   JoinedInput_StDev<-apply(TempJoinedInput_AsNum, 1, sd) 
   sum(JoinedInput_StDev==0)
   #5314
   
-  
+  #removing standard deviations of 0 which break the function
   JoinedInput_AsNumMatrix_Log2_NoSD0<-TempJoinedInput_AsNum[JoinedInput_StDev>0,]
   temp<-GeneNamesForJoinedInput
   GeneNamesForJoinedInput_NoSD0<-temp[JoinedInput_StDev>0]
@@ -90,6 +93,7 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   
   #############################################################
   
+  #reading in the cel type specific genes
   CellTypeSpecificGenes_Master3<-read.csv("CellTypeSpecificGenes_Master3.csv", header=T)
   colnames(CellTypeSpecificGenes_Master3)[4]<-"GeneSymbol_Human"
   colnames(CellTypeSpecificGenes_Master3)[5]<-"GeneSymbol_Mouse"
@@ -120,12 +124,14 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   ####################################
   #///////////////////////////////////
   ####################################
-  #do these need to get output or are they testing?
   #CELLTYPE PRIMARY BY SAMPLE
+  
+  #an empty matrix is required for the forloop
   AVE_Expression_CellType_Primary_bySample<-matrix(NA, nrow=length(names(table(ZscoreInput_Expression_CellType$CellType_Primary))), ncol=(ncol(ZscoreInput_Expression_CellType)-14))
   row.names(AVE_Expression_CellType_Primary_bySample)<-names(table(ZscoreInput_Expression_CellType$CellType_Primary))
   colnames(AVE_Expression_CellType_Primary_bySample)<-colnames(tempForJoin)[-1]
   
+  #15 - yeilds only the numeric 
   for(i in c(15:ncol(ZscoreInput_Expression_CellType))){
     AVE_Expression_CellType_Primary_bySample[,(i-14)]<-tapply(ZscoreInput_Expression_CellType[,i], ZscoreInput_Expression_CellType$CellType_Primary, function(y) mean(y, na.rm=T))
   }
@@ -251,6 +257,8 @@ cellTypeFunction <- function(userInput, dataColumns, geneColumn, species){
   head(CellTypePrimaryVsTag)
   
   #####################################################
+  #Creating an average by meantag
+
   ZscoreInput_Expression_CellType_NoPrimaryOverlap_MeanTag<-matrix(0, nrow=length(table(ZscoreInput_Expression_CellType_NoPrimaryOverlap$Tag)), ncol=(length(ZscoreInput_Expression_CellType_NoPrimaryOverlap[1,])-14))
   
   row.names(ZscoreInput_Expression_CellType_NoPrimaryOverlap_MeanTag)<-names(table(ZscoreInput_Expression_CellType_NoPrimaryOverlap$Tag))
